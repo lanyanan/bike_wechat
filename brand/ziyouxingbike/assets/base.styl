@@ -1,0 +1,39 @@
+$design-width = 1366
+$base-width = 320
+$font-size-num = 12
+
+$theme1 = #00adee
+$theme2 = #f3f3f5
+$theme3 = #f7f8fa
+$theme4 = #888
+$theme5 = #444444
+  
+/* media */
+$media(min, max = false)
+  if max
+    @media screen and (min-width 1px * min) and (max-width: 1px * max) {
+      html {
+        font-size: 1px * ($font-size-num * min/$base-width)
+      }
+    }
+  else
+    @media screen and (min-width: 1px * min) {
+      html {
+        font-size: 1px * ($font-size-num * min/$base-width)
+      }
+    }
+
+$media(320, 374)
+$media(375, 413)
+$media(414, 479)
+$media(480, 567)
+$media(568, 639)
+$media(640, 666)
+$media(667, 767)
+$media(768, 799)
+$media(800, 905)
+$media(906, 1079)
+$media(1080, 1279)
+$media(1280, 1365)
+$media(1366, 1599)
+$media(1600)

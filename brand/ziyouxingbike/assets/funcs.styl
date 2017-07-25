@@ -1,0 +1,22 @@
+$design-width = 1366
+$base-width = 320
+$font-size-num = 12
+
+$toRem(val)
+  1rem * val/$font-size-num
+
+$height(val)
+  $toRem(val * $base-width/$design-width)
+
+$width(val)
+  $toRem(val * $base-width/$design-width)
+
+$px(val)
+  // $width(val)
+  1px * val
+
+$imgUrl(src)
+  url('../img' + src)
+
+$headerHeight = 200
+$theme1 = #4cc2ff
