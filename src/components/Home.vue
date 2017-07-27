@@ -326,20 +326,23 @@ export default {
                 lat: position.lat
             }
             var msg = JSON.stringify(obj);
-            alert(msg)
-            yunba._publish({
-                topic: topic,
-                msg: msg,
-                qos: 1
-            }, (err) => {
-                alert(err)
-                if (err) {
-                    this.$vux.toast.show({
-                        type: 'warn',
-                        text: err
-                    });
+            //alert(msg)
+            setTimeout(function(){
+                yunba._publish({
+                    topic: topic,
+                    msg: msg,
+                    qos: 1
+                }, (err) => {
+                   // alert(err)
+                    if (err) {
+                        this.$vux.toast.show({
+                            type: 'warn',
+                            text: err
+                        });
                 }
-            });
+                });
+            }, 2000)
+            
             this.countStart();
         },
         handleUnLockCount(leftTime) {
@@ -734,7 +737,7 @@ export default {
                     
                 }
             }, (err, result) => {
-                alert(JSON.stringify(result))
+                //alert(JSON.stringify(result))
                 if (err) {
                     this.$vux.toast.show({
                         type: 'warn',
@@ -774,13 +777,15 @@ export default {
 
         },
         handleScanCode() {
+            let _this = this;
             wx.scanQRCode({
                 needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
                 scanType: ["qrCode","barCode"], // 可以指定扫二维码还是一维码，默认二者都有
                 success: (res) => {
                     if (res.errMsg == 'scanQRCode:ok') {
+                        this.getDeviceId('7880123456')
                         //this.handleUnLock(res.resultStr);
-                        this.my_openWXDeviceLib();
+                        //this.my_openWXDeviceLib();
                     }
                 }
             });
@@ -801,40 +806,128 @@ export default {
                 }
             });
         },
+
+
+        /**
+         * 得到设备的Id
+         * 
+         */
+        getDeviceId(number) {
+            alert('diaoyongle')
+            this.$http({
+                url: `${BASE_URL}/lock-wechat/ble_info?bike_number=${number}&appkey=${APP_KEY}`
+            }).then(function(res) {
+                if(res.data.status == 0) {
+
+                }
+                alert(JSON.stringify(result))
+                this.my_openWXDeviceLib();
+            }.bind(this));
+        },
+
+
+        /**
+         * 绑定设备
+         * 
+         */
+        bindDevice(id) {
+            alert('diaoyongle')
+            this.$http({
+                method: 'post',
+                
+                url: `${BASE_URL}/lock-wechat/ble_info?bike_number=${number}&appkey=${APP_KEY}`,
+                data: {
+                    device_id: id,
+                    openid: openid
+                }
+            }).then(function(res) {
+                if(res.status == 0) {
+                    this.my_openWXDeviceLib();
+                }
+                alert(JSON.stringify(result))
+            }.bind(this));
+        },
+
+        /**
+         * @Author    lan
+         * @DateTime  2017-07-20
+         * @函数描述    关闭设备的初始化库
+         */
+        
+        // my_closeWXDeviceLib() {
+        //     wx.ready(function() {
+        //         wx.invoke('closeWXDeviceLib', {
+        //                 'connType': 'blue'
+        //             },
+        //             function(res) {
+        //                 console.log(res);
+        //                 alert(JSON.stringify(res))
+        //             });
+        //     })
+        // },
+
+
         /**
          * @Author    lan
          * @DateTime  2017-07-20
          * @函数描述    主要是打开设备
          * @return    {[type]}    [description]
          */
+        
         my_openWXDeviceLib() {
             let _this = this;
             var x=0; 
             wx.ready(function(){
                 wx.invoke('openWXDeviceLib', {'connType':'blue'}, 
                 function(res){
-                    alert(JSON.stringify(res))
+                    //监听蓝牙链接的状态 如果链接上了直接发送开锁请求，如果没有链接上就需要调用接口连接
+                    _this.my_onWXDeviceStateChange()
                     _this.my_onScanWXDeviceResult();
-                    _this.my_startScanWXDevice();
                     _this.my_onReceiveDataFromWXDevice();
                 });
             })
             return x;  //0表示成功 1表示失败
         },
+
+
+        /**
+         * @Author    lan
+         * @DateTime  2017-07-20
+         * onWXDeviceStateChange   监听设备蓝牙链接的状态的改变 
+         */
+        my_onWXDeviceStateChange() {
+            let _this = this;
+            wx.on('onWXDeviceStateChange', function(res) {
+                if(res.state == "connecting"){
+                    alert('lianjiezhong')
+                }else if(res.state == "connected") {
+                    alert('已链接')
+                    _this.handleUnLock('7880123456')
+                }else {
+                    alert('weilainjie')
+                    _this.my_startScanWXDevice();
+                }
+                alert(JSON.stringify(res))
+
+            });
+        },
+
+
         /**
          * @Author    lan
          * @DateTime  2017-07-20
          * 函数描述    开始调用设备微信的扫描
-         * @return    {[type]}    [description]
          */
         my_startScanWXDevice() {
             let _this = this;
             wx.invoke('startScanWXDevice', {'connType':'blue','btVersion':'ble'
             }, function(res) {
-                alert(JSON.stringify(res))
+                //alert(JSON.stringify(res))
                 
             });
         },
+
+
         /**
          * @Author    lan
          * @DateTime  2017-07-20
@@ -844,7 +937,7 @@ export default {
         my_onScanWXDeviceResult() {
             let _this = this;
             wx.on('onScanWXDeviceResult',function(res){
-                alert(JSON.stringify(res))
+                //alert(JSON.stringify(res))
                 let devices = res.deviceId;
                 _this.my_connectWXDevice();
                 // devices.map((item,index)=>{
@@ -855,6 +948,8 @@ export default {
             })
             
         },
+
+
         /**
          * @Author    lan
          * @DateTime  2017-07-20
@@ -864,13 +959,14 @@ export default {
         my_connectWXDevice() {
             let _this = this;
             wx.invoke('connectWXDevice', {'deviceId' : 'BFBB1CD0YBBLE', 'connType':'blue' }, function(res) {
-            alert(JSON.stringify(res))
+            //alert(JSON.stringify(res))
             _this.handleUnLock('7880123456')
             if (res.errMsg == 'connectWXDevic:ok') {
                 //_this.handleUnLock()
             }
         });
         },
+
 
         /**
          * @Author    lan
@@ -881,11 +977,13 @@ export default {
         my_getWXDeviceTicket() {
             let _this = this;
             wx.invoke('getWXDeviceTicket', {'deviceId':'BFBB1CD0YBBLE',type:1,'connType':'blue'}, function(res) {
-            alert(JSON.stringify(res));
+            //alert(JSON.stringify(res));
             _this.my_connectWXDevice();
 
         });
         },
+
+
         /**
          * @Author    lan
          * @DateTime  2017-07-20
@@ -894,14 +992,15 @@ export default {
          */
         my_sendDataToWXDevice(data) {
             let _this = this;
-            alert(data);
+            //alert(data);
             var base = new Base64();  
             var result = base.encode(data);
-            alert(result);
+            //alert(result);
             wx.invoke('sendDataToWXDevice', {deviceId:'BFBB1CD0YBBLE',base64Data:result},function(res) {
-            alert(JSON.stringify(res));
+            //alert(JSON.stringify(res));
         });
         },
+
         /**
          * @Author    lan
          * @DateTime  2017-07-25
@@ -914,17 +1013,17 @@ export default {
         my_onReceiveDataFromWXDevice() {
             let _this = this;
             wx.on('onReceiveDataFromWXDevice',function(res){
-                alert(res.base64Data);
+                //alert(res.base64Data);
                 var base = new Base64();  
                 var result = base.decode(res.base64Data);
-                alert('yifa')
-                alert(JSON.stringify(result))
+                //alert('yifa')
+                //alert(JSON.stringify(result))
                 yunba._publish({
                     topic: ',yble',
                     msg: result,
                     qos: 0
                 }, (err) => {
-                    alert(err)
+                    //alert(err)
                     if (err) {
                         this.$vux.toast.show({
                             type: 'warn',
@@ -938,33 +1037,14 @@ export default {
                 //     }
                 // })
             })
-        },
-        parseHexString(str) { 
-            var result = [];
-            while (str.length >= 8) { 
-                result.push(parseInt(str.substring(0, 8), 16));
-
-                str = str.substring(8, str.length);
-            }
-
-            return result;
-        },
-        createHexString(arr) {
-            var result = "";
-            var z;
-            for (var i = 0; i < arr.length; i++) {
-                var str = arr[i].toString(16);
-                z = 8 - str.length + 1;
-                str = Array(z).join("0") + str;
-                result += str;
-            }
-            return result;
         }
     },
     created() {
         this.fetchAdvertisement();
         this.getCurrentSession();
         this.ready = this.init();
+        //先关闭设备库以免自动连接
+        //this.my_closeWXDeviceLib();
     },
     computed: {
     }

@@ -17,7 +17,7 @@ export default {
                     const {appId, nonceStr, timestamp, signature} = options;
                     const config = {
                         beta: true,
-                        debug: true,
+                        debug: false,
                         appId: appId,
                         timestamp: Number(timestamp),
                         nonceStr: nonceStr,
