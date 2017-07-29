@@ -37,6 +37,7 @@ export default {
                             'getWXDeviceTicket',
                             'startScanWXDevice',
                             'connectWXDevice',
+                            'disconnectWXDevice',
                             'sendDataToWXDevice',
                             'translateVoice',
                             'onScanWXDeviceResult',
